@@ -13,12 +13,12 @@
                 <i class="fa fa-archive"></i>  Trama Devoluciones Banco Pichincha
             </li>
         </ol>
-       <%-- <div class=" form-group col-lg-12">
+        <div class=" form-group col-lg-12">
             <label>
                 Fecha:
             </label>
             <input name="fechas" class="reportrange form-control">
-        </div>--%>
+        </div>
         <div class="form-group col-lg-6">
             <label>
                 Nombre Base:

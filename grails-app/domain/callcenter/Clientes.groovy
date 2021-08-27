@@ -141,6 +141,10 @@ class Clientes {
 
 	String guia
 	String inventario
+	String lote
+	String ciclo_entrega
+	String fecha_cierre_ciclo
+	String registros_ciclo
 
 	static constraints = {
 		//Campos de la base
@@ -272,6 +276,10 @@ class Clientes {
 
 		guia nullable: true
 		inventario nullable: true
+		lote nullable: true
+		ciclo_entrega nullable: true
+		fecha_cierre_ciclo nullable: true
+		registros_ciclo nullable: true
 	}
 	
 	static mapping = {
@@ -333,7 +341,11 @@ class Clientes {
 						   "nombreCampania",
 						   "bloqueSegmentacion",
 						   "guia",
-						   "inventario"]
+						   "inventario",
+						   "lote",
+						   "ciclo_entrega",
+						   "fecha_cierre_ciclo",
+		                   "registros_ciclo"]
 		return fields
 	}
 	static HashMap getTiposParientes(){

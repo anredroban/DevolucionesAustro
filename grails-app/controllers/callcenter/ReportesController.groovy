@@ -54,16 +54,16 @@ class ReportesController {
 		Date fechaActual = new Date()
 		SimpleDateFormat objSDF = new SimpleDateFormat('yyyy-MM-dd')
 		String fecha = objSDF.format(fechaActual)
-		if(params.nombreBase){
+		if(params.fechas){
 
 			//Obtenemos los datos
-//			Date[] fechas = Util.formatearFechasReporte(params.fechas.toString())
+			Date[] fechas = Util.formatearFechasReporte(params.fechas.toString())
 			//ArrayList<SubSubestado> subestados = Subestado.executeQuery("from Subestado where id in (1,3)")
 			//ArrayList<SubSubestado> crazadas = Subestado.executeQuery("from Subestado where id in (3)")
 			 def nombresBase = params.list("nombreBase")
-			def condiciones = [nombresBase: nombresBase]
+			def condiciones = [nombresBase: nombresBase, fechaInicio: fechas[0], fechaFin: fechas[1]]
 			//def condicionesCruzadas = [fechaInicio: fechas[0], fechaFin: fechas[1], subestados: subestados]
-			String sqlPrincipales = "from Clientes where nombreBase in (:nombresBase) and fechaGestion is not null"
+			String sqlPrincipales = "from Clientes where nombreBase in (:nombresBase) and fechaGestion between :fechaInicio and :fechaFin"
 			def principalesList = Clientes.executeQuery(sqlPrincipales, condiciones)
 			//String sqlCruzadas = "from Clientes where subestadoGestion in (:subestados) and fechaGestion between :fechaInicio and :fechaFin and cast(montoAceptadoGestion as integer) > 10000"
 			//def cruzadasList = Clientes.executeQuery(sqlCruzadas, condicionesCruzadas)
@@ -86,12 +86,12 @@ class ReportesController {
 			String[] headersPrincipales = ["FECHA GRABACION", "STATUS (P)", "PRODUCTO (D)", "COD_PRO", "TARJETA (F)", "SECUENCIAL (J)", "CODIGO UNICO",
 										   "FECHA", "12_CEDULA", "NOMBRE (G)", "4_TELEFONO 1", "5_TELEFONO 2", "6_TELEFONO 3", "MOTIVO DE DEV. (S)", "CIUDAD (N)","16", "17_CANAL 1",
 					                       "24_CODRET", "25_BOLNAC", "GB", "CASO", "GESTIONES", "TIPO", "9_DHNOMP", "13_DHCUENTA", "SECUENCIAL (J2)", "CEDPRI","3_DIRECCION",
-										   "20_DIRECCION CTA", "21_TELEFONO 1 CTA", "22_TELEFONO 2 CTA", "23_TELEFONO 3 CTA","15_PRODUCTO", "REGESTION", "10_DHSEGM", "ENVIAR A:", "PROVINCIA", "CIUDAD",
+										   "20_DIRECCION CTA", "21_TELEFONO 1 CTA", "22_TELEFONO 2 CTA", "23_TELEFONO 3 CTA","15_PRODUCTO", "REGESTION", "10_DHSEGM", "ENVIAR A:", "PROVINCIA", "CIUDAD", "PARROQUIA",
 										   "RESPUESTA TIPO","PERSONA CONTACTO", "NOMBRE 3RA PERSONA",  "PARENTEZCO 3RA PERSONA", "HORARIO ENTREGA", "DIRECCION DE ENTREGA", "NOMBRE AGENCIA (ENTREGA)",
 										   "TELEFONO DE CONTACTO", "CELULAR DE CONTACTO", "EMAIL", "DISCREPANCIAS", "DETALLE DISCREPENCIAS", "DETALLE OTROS", "MOTIVO DE DEV (S)",
 										   "ESTADO","SUB ESTADO", "SUB SUB ESTADO", "OBSERVACIONES", "NOMBRE BASE", "ASESOR", "INTENTOS", "FECHA DE GESTION", "MES BASE", "SEMANA",
 										   "% CONTACTABILIDAD", "% EFECTIVIDAD", "% CU4", "LIMITE CONTACTABILIDAD", "LIMITE EFECTIVIDAD", "LIMITE ENVIO AGENCIA", "% ENVIO AGENCIA", "REGISTROS POR BASE",
-										   "REGISTROS ENVIO AGENCIA", "CLIENTES", "TOTAL MES", "CALL CENTER", "ID SISTEMA","GUIA","INVENTARIO"]
+										   "REGISTROS ENVIO AGENCIA", "CLIENTES", "TOTAL MES", "CALL CENTER", "ID SISTEMA","GUIA","INVENTARIO", "LOTE", "CICLO DE ENTREGA", "FECHA CIERRE CICLO", "REGISTROS CICLO"]
 			String[] headersInterdin = ["STATUS (P)", "PRODUCTO (D)", "COD_PRO", "TARJETA (F)", "SECUENCIAL (J)", "CODIGO UNICO",
 										"FECHA", "12_CEDULA", "NOMBRE (G)", "4_TELEFONO 1", "5_TELEFONO 2", "6_TELEFONO 3", "MOTIVO DE DEV. (S)", "CIUDAD (N)","16", "17_CANAL 1",
 										"24_CODRET", "25_BOLNAC", "GB", "CASO", "GESTIONES", "TIPO", "9_DHNOMP", "13_DHCUENTA", "SECUENCIAL (J2)", "CEDPRI", "PEPS", "ANVITN (4)",
@@ -160,10 +160,11 @@ class ReportesController {
 				}else{
 					campos[36] = princ.provinciaDirecion
 					campos[37] = princ.ciudadDirecion
+					campos[38] = princ.parroquiaDirecion
 					nombreAgencia = ""
 				}
 				if (princ.lugarEnvio.toString().equalsIgnoreCase("DIRECCION")){
-					campos[38] = princ.respuestaTipo
+					campos[39] = princ.respuestaTipo
 					direccionConcat = princ.provinciaDirecion + " " + princ.ciudadDirecion + " " + princ.parroquiaDirecion + " " + princ.callePrincipalEntrega + " " + princ.nomenclaturaEntrega + " " + princ.calleSecundariaEntrega + " " + princ.referenciaEntrega
 
 				}else{
@@ -172,57 +173,61 @@ class ReportesController {
 
 				}
 				if (princ.lugarEnvio.toString().equalsIgnoreCase("AGENCIA")){
-					campos[38] = "SOCIO SOLICITA ENVIO AGENCIA"
+					campos[39] = "SOCIO SOLICITA ENVIO AGENCIA"
 				}
 				for (int r = 0; r < dbNombreSubestado.size(); r++){
 					MotivosnoAceptaSeguro mot = dbNombreSubestado.get(r)
 					if(princ.subSubEstado == mot.nombreSubSubEstado){
-						campos[38] = mot.nombre //princ.subSubEstado
+						campos[39] = mot.nombre //princ.subSubEstado
 					}
 				}
-				campos[39] = princ.personaContacto
-				campos[40] = princ.nombreTerceraPersona
-				campos[41] = princ.parentescoTerceraPersona
-				campos[42] = princ.horarioEntrega
-				campos[43] = direccionConcat
-				campos[44] = nombreAgencia
-				campos[45] = princ.telefonoContactoGestion
-				campos[46] = princ.celularContactoGestion
+				campos[40] = princ.personaContacto
+				campos[41] = princ.nombreTerceraPersona
+				campos[42] = princ.parentescoTerceraPersona
+				campos[43] = princ.horarioEntrega
+				campos[44] = direccionConcat
+				campos[45] = nombreAgencia
+				campos[46] = princ.telefonoContactoGestion
+				campos[47] = princ.celularContactoGestion
 				// emailGestion
 				if (princ.emailGestion.toString().equalsIgnoreCase("notiene@notiene.com")){
-					campos[47] =""
+					campos[48] =""
 				}else {
-					campos[47] = princ.emailGestion
+					campos[48] = princ.emailGestion
 				}
-				campos[48] = princ.discrepancias
-				campos[49] = princ.detalleDiscrepancias
-				campos[50] = princ.detalleOtros
-				campos[51] = princ.motivoDevolucionesGestion
-				campos[52] = princ.estadoGestion
-				campos[53] = princ.subestadoGestion.nombre
-				campos[54] = princ.subSubEstado
-				campos[55] = princ.observaciones
-				campos[56] = princ.nombreBase
-				campos[57] = princ.nombreVendedor
-				campos[58] = princ.intentos
-				campos[59] = princ.fechaGestion.toString()
-				campos[60] = ""
-				campos[61] = "SEMANA 1"
-				campos[62] = pctContactabilidad.replace(".",",")
-				campos[63] = pctEfectividad.replace(".",",")
-				campos[64] = pctCU4.replace(".",",")
-				campos[65] = "75%"
-				campos[66] = "52,5%"
-				campos[67] = "0,08%"
-				campos[68] = pctAgencia.replace(".",",")
-				campos[69] = totalBase.toString()
-				campos[70] = CU1BaseAgencia.toString()
-				campos[71] = ""
+				campos[49] = princ.discrepancias
+				campos[50] = princ.detalleDiscrepancias
+				campos[51] = princ.detalleOtros
+				campos[52] = princ.motivoDevolucionesGestion
+				campos[53] = princ.estadoGestion
+				campos[54] = princ.subestadoGestion.nombre
+				campos[55] = princ.subSubEstado
+				campos[56] = princ.observaciones
+				campos[57] = princ.nombreBase
+				campos[58] = princ.nombreVendedor
+				campos[59] = princ.intentos
+				campos[60] = princ.fechaGestion.toString()
+				campos[61] = ""
+				campos[62] = "SEMANA 1"
+				campos[63] = pctContactabilidad.replace(".",",")
+				campos[64] = pctEfectividad.replace(".",",")
+				campos[65] = pctCU4.replace(".",",")
+				campos[66] = "75%"
+				campos[67] = "52,5%"
+				campos[68] = "0,08%"
+				campos[69] = pctAgencia.replace(".",",")
+				campos[70] = totalBase.toString()
+				campos[71] = CU1BaseAgencia.toString()
 				campos[72] = ""
 				campos[73] = ""
-				campos[74] = princ.id
-				campos[75] = princ.guia
-				campos[76] = princ.inventario
+				campos[74] = ""
+				campos[75] = princ.id
+				campos[76] = princ.guia
+				campos[77] = princ.inventario
+				campos[78] = princ.lote
+				campos[79] = princ.ciclo_entrega
+				campos[80] = princ.fecha_cierre_ciclo
+				campos[80] = princ.registros_ciclo
 
 				ExcelUtils.addCells(campos, sheetPrincipales, i+1, Colour.WHITE, Alignment.LEFT, VerticalAlignment.CENTRE, cellFont2, null, null)
 			}
